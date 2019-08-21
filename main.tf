@@ -154,10 +154,6 @@ resource "azurerm_virtual_machine" "windows_instance" {
   os_profile_windows_config {
     provision_vm_agent        = true
     enable_automatic_upgrades = false
-
-    winrm = {
-      protocol = "http"
-    }
   }
 
   tags = "${merge(var.tags, map("Name", format(var.hostname_format, (count.index + 1), var.location, local.cluster_name),

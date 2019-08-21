@@ -21,6 +21,7 @@ variable "vm_size" {
 
 variable "dcos_instance_os" {
   description = "Operating system to use. Instead of using your own AMI you could use a provided OS."
+  default     = "windows_1809"
 }
 
 variable "image" {
@@ -51,20 +52,6 @@ variable "custom_data" {
 variable "admin_username" {
   description = "Windows admin user"
   default     = "dcosadmin"
-}
-
-variable "admin_password" {
-  description = "Windows admin password"
-  default     = []
-}
-
-variable "public_ssh_key" {
-  description = "SSH Public Key"
-}
-
-variable "allow_stopping_for_update" {
-  description = "If true, allows Terraform to stop the instance to update its properties"
-  default     = "true"
 }
 
 variable "tags" {
