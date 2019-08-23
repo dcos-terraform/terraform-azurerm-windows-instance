@@ -173,8 +173,7 @@ resource "azurerm_virtual_machine_extension" "winrm_setup" {
 
   settings = <<SETTINGS
     {
-        "fileUris": ["https://raw.githubusercontent.com/dcos-terraform/terraform-azurerm-windows-instance/master/winrm_setup.ps1"],
-        "commandToExecute": "powershell.exe -ExecutionPolicy unrestricted -NoProfile -NonInteractive -File winrm_setup.ps1"
+        "commandToExecute": "winrm quickconfig -q & winrm set winrm\/config @{MaxTimeoutms=\"1800000\"} & winrm set winrm\/config\/service @{AllowUnencrypted=\"true\"} & winrm set winrm\/config\/service\/auth @{Basic=\"true\"} & powershell.exe -Command \"&{ $hostname = $(Invoke-RestMethod -Headers @{'Metadata'='true'} -URI 'http:\/\/169.254.169.254\/metadata\/instance\/compute\/name?api-version=2019-02-01&&format=text'); New-SelfSignedCertificate -DnsName $hostname -CertStoreLocation Cert:\\LocalMachine\\My; New-Item WSMan:\\localhost\\Listener -Address * -Transport HTTPS -HostName $hostname -CertificateThumbPrint $(ls Cert:\\LocalMachine\\My).Thumbprint -Force; Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False; Set-MpPreference -DisableRealtimeMonitoring $true }\""
     }
   SETTINGS
 
