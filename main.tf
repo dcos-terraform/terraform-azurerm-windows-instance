@@ -145,7 +145,7 @@ resource "azurerm_virtual_machine" "windows_instance" {
   }
 
   os_profile {
-    computer_name  = "${format(var.hostname_format, count.index + 1, local.cluster_name)}"
+    computer_name  = "${format(var.hostname_format, count.index + 1, substr(local.cluster_name, 0, min(5, length(local.cluster_name))))}"
     admin_username = "${local.admin_username}"
     admin_password = "${element(random_password.password.*.result, count.index)}"
     custom_data    = "${var.custom_data}"
