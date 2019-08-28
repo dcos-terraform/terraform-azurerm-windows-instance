@@ -8,17 +8,47 @@
  * -------
  *
  *```hcl
- * module "dcos-windows-instances" {
- *   source  = "dcos-terraform/windows-instance/azurerm"
- *   version = "~> 0.0.1"
+ * locals {
+ *   cluster_name        = "prod"
+ *   location            = "West US"
+ *   dcos_version        = "1.13.3"
+ *   dcos_variant        = "open"
+ *   dcos_instance_os    = "centos_7.6"
+ *   dcos_winagent_os    = "windows_1809"
+ *   vm_size             = "Standard_D2s_v3"
+ *   ssh_public_key_file = "~/.ssh/id_rsa.pub"
+ * }
  *
- *   cluster_name = "prod"
- *   subnet_id = "myid"
- *   security_group_ids = ["sg-12345678"]
+ * module "winagent" {
+ *   source = "dcos-terraform/windows-instance/azurerm"
  *
- *   num = "2"
- *  ...
- *}
+ *   providers = {
+ *     azurerm = "azurerm"
+ *   }
+ *
+ *   location         = "${local.location}"
+ *   dcos_instance_os = "${local.dcos_winagent_os}"
+ *   cluster_name     = "${local.cluster_name}"
+ *
+ *   hostname_format = "winagt-%[1]d-%[2]s"
+ *
+ *   subnet_id           = "${module.dcos.infrastructure.subnet_id}"
+ *   resource_group_name = "${module.dcos.infrastructure.resource_group_name}"
+ *   vm_size             = "${local.vm_size}"
+ *   admin_username      = "dcosadmin"
+ *
+ *   num = 3
+ * }
+ *
+ * output "winagent-ips" {
+ *   description = "Windows IP"
+ *   value       = "${module.winagent.public_ips}"
+ * }
+ *
+ * output "windows_passwords" {
+ *   description = "Windows Password for user ${module.winagent.admin_username}"
+ *   value       = ["${concat(module.winagent.windows_passwords)}"]
+ * }
  *```
  */
 
@@ -145,7 +175,7 @@ resource "azurerm_virtual_machine" "windows_instance" {
   }
 
   os_profile {
-    computer_name  = "${format(var.hostname_format, count.index + 1, local.cluster_name)}"
+    computer_name  = "${format(var.hostname_format, count.index + 1, substr(local.cluster_name, 0, min(5, length(local.cluster_name))))}"
     admin_username = "${local.admin_username}"
     admin_password = "${element(random_password.password.*.result, count.index)}"
     custom_data    = "${var.custom_data}"

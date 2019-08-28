@@ -62,7 +62,7 @@ variable "tags" {
 
 variable "hostname_format" {
   description = "Format the hostname inputs are index+1, region, cluster_name"
-  default     = "pvtagt-%[1]d-%[2]s"
+  default     = "winagt-%[1]d-%[2]s"
 }
 
 variable "subnet_id" {

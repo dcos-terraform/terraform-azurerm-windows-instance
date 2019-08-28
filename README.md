@@ -7,20 +7,47 @@ EXAMPLE
 -------
 
 ```hcl
-module "dcos-windows-instances" {
- source  = "dcos-terraform/windows-instance/azure"
- version = "~> 0.0.1"
-
- subnet_id = "myid"
- security_group_ids = ["sg-12345678"]"
- admin_username = "dcosadmin"
- cluster_name = "dev"
- dcos_instance_os = "windows_1809"
- 
- num = "2"
- ...
+locals {
+  cluster_name        = "prod"
+  location            = "West US"
+  dcos_version        = "1.13.3"
+  dcos_variant        = "open"
+  dcos_instance_os    = "centos_7.6"
+  dcos_winagent_os    = "windows_1809"
+  vm_size             = "Standard_D2s_v3"
+  ssh_public_key_file = "~/.ssh/id_rsa.pub"
 }
-```
+
+module "winagent" {
+  source = "dcos-terraform/windows-instance/azurerm"
+
+  providers = {
+    azurerm = "azurerm"
+  }
+
+  location         = "${local.location}"
+  dcos_instance_os = "${local.dcos_winagent_os}"
+  cluster_name     = "${local.cluster_name}"
+
+  hostname_format = "winagt-%[1]d-%[2]s"
+
+  subnet_id           = "${module.dcos.infrastructure.subnet_id}"
+  resource_group_name = "${module.dcos.infrastructure.resource_group_name}"
+  vm_size             = "${local.vm_size}"
+  admin_username      = "dcosadmin"
+
+  num = 3
+}
+
+output "winagent-ips" {
+  description = "Windows IP"
+  value       = "${module.winagent.public_ips}"
+}
+
+output "windows_passwords" {
+  description = "Windows Password for user ${module.winagent.admin_username}"
+  value       = ["${concat(module.winagent.windows_passwords)}"]
+}```
 
 ## Inputs
 
@@ -39,7 +66,7 @@ module "dcos-windows-instances" {
 | disk\_size | Disk Size in GB | string | `"120"` | no |
 | disk\_type | Disk Type to Leverage | string | `"Standard_LRS"` | no |
 | hostname\_format | Format the hostname inputs are index+1, region, cluster_name. Azure limits with 15 chars in total | string | `"winagt-%[1]d-%[2]s"` | no |
-| image | Source image to boot from | map | `<map>` | no |
+| image | Source image to boot from. Example, `image = { "offer" = "MicrosoftWindowsServer" "publisher" = "WindowsServer" "sku" = "Datacenter-Core-1809-with-Containers-smalldisk" "version" = "17763.615.1907121548" }`| map | `<map>` | no |
 | name\_prefix | Name Prefix | string | `""` | no |
 | network\_security\_group\_id | Security Group Id | string | `""` | no |
 | tags | Add custom tags to all resources | map | `<map>` | no |
