@@ -7,20 +7,47 @@ EXAMPLE
 -------
 
 ```hcl
-module "dcos-windows-instances" {
- source  = "dcos-terraform/windows-instance/azure"
- version = "~> 0.0.1"
-
- subnet_id = "myid"
- security_group_ids = ["sg-12345678"]"
- admin_username = "dcosadmin"
- cluster_name = "dev"
- dcos_instance_os = "windows_1809"
- 
- num = "2"
- ...
+locals {
+  cluster_name        = "prod"
+  location            = "West US"
+  dcos_version        = "1.13.3"
+  dcos_variant        = "open"
+  dcos_instance_os    = "centos_7.6"
+  dcos_winagent_os    = "windows_1809"
+  vm_size             = "Standard_D2s_v3"
+  ssh_public_key_file = "~/.ssh/id_rsa.pub"
 }
-```
+
+module "winagent" {
+  source = "dcos-terraform/windows-instance/azurerm"
+
+  providers = {
+    azurerm = "azurerm"
+  }
+
+  location         = "${local.location}"
+  dcos_instance_os = "${local.dcos_winagent_os}"
+  cluster_name     = "${local.cluster_name}"
+
+  hostname_format = "winagt-%[1]d-%[2]s"
+
+  subnet_id           = "${module.dcos.infrastructure.subnet_id}"
+  resource_group_name = "${module.dcos.infrastructure.resource_group_name}"
+  vm_size             = "${local.vm_size}"
+  admin_username      = "dcosadmin"
+
+  num = 3
+}
+
+output "winagent-ips" {
+  description = "Windows IP"
+  value       = "${module.winagent.public_ips}"
+}
+
+output "windows_passwords" {
+  description = "Windows Password for user ${module.winagent.admin_username}"
+  value       = ["${concat(module.winagent.windows_passwords)}"]
+}```
 
 ## Inputs
 
