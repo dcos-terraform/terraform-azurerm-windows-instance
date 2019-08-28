@@ -39,7 +39,7 @@ module "dcos-windows-instances" {
 | disk\_size | Disk Size in GB | string | `"120"` | no |
 | disk\_type | Disk Type to Leverage | string | `"Standard_LRS"` | no |
 | hostname\_format | Format the hostname inputs are index+1, region, cluster_name. Azure limits with 15 chars in total | string | `"winagt-%[1]d-%[2]s"` | no |
-| image | Source image to boot from | map | `<map>` | no |
+| image | Source image to boot from. Example, `image = { "offer" = "MicrosoftWindowsServer" "publisher" = "WindowsServer" "sku" = "Datacenter-Core-1809-with-Containers-smalldisk" "version" = "17763.615.1907121548" }`| map | `<map>` | no |
 | name\_prefix | Name Prefix | string | `""` | no |
 | network\_security\_group\_id | Security Group Id | string | `""` | no |
 | tags | Add custom tags to all resources | map | `<map>` | no |
