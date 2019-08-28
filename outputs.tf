@@ -1,5 +1,5 @@
 output "admin_username" {
-  description = "Windows admin username"
+  description = "SSH User"
   value       = "${local.admin_username}"
 }
 

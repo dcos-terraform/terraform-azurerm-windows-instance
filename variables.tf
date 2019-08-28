@@ -1,5 +1,5 @@
 variable "num" {
-  description = "Specify the amount of Windows agents."
+  description = "How many instances should be created"
 }
 
 variable "cluster_name" {
@@ -50,7 +50,7 @@ variable "custom_data" {
 }
 
 variable "admin_username" {
-  description = "Windows admin user"
+  description = "SSH User"
   default     = "dcosadmin"
 }
 
