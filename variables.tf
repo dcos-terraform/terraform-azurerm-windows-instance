@@ -51,7 +51,7 @@ variable "custom_data" {
 
 variable "admin_username" {
   description = "SSH User"
-  default     = "dcosadmin"
+  default     = "Administrator"
 }
 
 variable "tags" {

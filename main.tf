@@ -186,9 +186,7 @@ resource "azurerm_virtual_machine" "windows_instance" {
 
 resource "azurerm_virtual_machine_extension" "winrm_setup" {
   name                 = "${format(var.hostname_format, count.index + 1, local.cluster_name)}"
-  location             = "${var.location}"
-  resource_group_name  = "${var.resource_group_name}"
-  virtual_machine_name = "${format(var.hostname_format, count.index + 1, local.cluster_name)}"
+  virtual_machine_id   = "${element(azurerm_virtual_machine.windows_instance.*.id, count.index)}"
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
   type_handler_version = "1.8"
@@ -197,9 +195,9 @@ resource "azurerm_virtual_machine_extension" "winrm_setup" {
 
   settings = <<SETTINGS
     {
-        "commandToExecute": "winrm quickconfig -q & winrm set winrm\/config @{MaxTimeoutms=\"1800000\"} & winrm set winrm\/config\/service @{AllowUnencrypted=\"true\"} & winrm set winrm\/config\/service\/auth @{Basic=\"true\"} & powershell.exe -Command \"&{ $hostname = $(Invoke-RestMethod -Headers @{'Metadata'='true'} -URI 'http:\/\/169.254.169.254\/metadata\/instance\/compute\/name?api-version=2019-02-01&&format=text'); New-SelfSignedCertificate -DnsName $hostname -CertStoreLocation Cert:\\LocalMachine\\My; New-Item WSMan:\\localhost\\Listener -Address * -Transport HTTPS -HostName $hostname -CertificateThumbPrint $(ls Cert:\\LocalMachine\\My).Thumbprint -Force; Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False; Set-MpPreference -DisableRealtimeMonitoring $true }\""
+        "commandToExecute": "winrm quickconfig -q & winrm set winrm\/config @{MaxTimeoutms=\"1800000\"} & winrm set winrm\/config\/service @{AllowUnencrypted=\"true\"} & winrm set winrm\/config\/service\/auth @{Basic=\"true\"} & powershell.exe -Command \"&{ $hostname = $(Invoke-RestMethod -Headers @{'Metadata'='true'} -URI 'http:\/\/169.254.169.254\/metadata\/instance\/compute\/name?api-version=2019-02-01&&format=text'); New-SelfSignedCertificate -DnsName $hostname -CertStoreLocation Cert:\\LocalMachine\\My; New-Item WSMan:\\localhost\\Listener -Address * -Transport HTTPS -HostName $hostname -CertificateThumbPrint $(ls Cert:\\LocalMachine\\My).Thumbprint -Force; Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False; Set-MpPreference -DisableRealtimeMonitoring $true; Enable-PSRemoting -Force }\""
     }
-  SETTINGS
+SETTINGS
 
   tags = "${merge(var.tags, map("Name", format(var.hostname_format, (count.index + 1), var.location, local.cluster_name),
                                 "Cluster", local.cluster_name))}"
